@@ -1,0 +1,15 @@
+runtime: python311
+handlers:
+
+- url: /static
+  static_dir: static
+
+
+- url: /.*
+  script: auto
+
+env_variables:
+  mail: "30nithinms@gmail.com"
+  url: "mongodb+srv://msnithin84:Nithin@cluster0.wob2cfi.mongodb.net/coded"
+
+  
