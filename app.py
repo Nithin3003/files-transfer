@@ -1,4 +1,4 @@
-from flask import Flask, request, render_template, send_file, abort, url_for
+from flask import Flask, request, render_template, send_file, abort, url_for,redirect
 from flask_pymongo import PyMongo
 from bson.objectid import ObjectId
 from gridfs import GridFS, NoFile
@@ -60,12 +60,23 @@ def upload_file():
             random_id = generate_random_id()
             file_ids[random_id] = []
             for file in valid_files:
-                oid = fs.put(file, content_type=file.content_type, filename=file.filename)
-                if oid:
-                    # file_ids[random_id].append(str(oid))
-                    store(r_id=random_id, o_id=oid)
-                else:
-                    return f"Failed to upload file: {file.filename}"
+                try:
+                    file_id = fs.put(file, content_type=file.content_type, filename=file.filename)
+                    # Handle successful upload
+                except Exception as e:
+                    # Handle errors here
+                    print(f"Error uploading file: {e}")                
+
+
+
+
+
+                # oid = fs.put(file, content_type=file.content_type, filename=file.filename)
+                # if oid:
+                #     # file_ids[random_id].append(str(oid))
+                #     store(r_id=random_id, o_id=oid)
+                # else:
+                #     return f"Failed to upload file: {file.filename}"
             qr_code_img = generate_qr_code(random_id)
             qr_code_base64 = base64.b64encode(qr_code_img.getvalue()).decode('utf-8')
             return render_template('index.html', qr_code_base64=qr_code_base64, random_id=random_id)
@@ -106,7 +117,7 @@ def download_file():
         
     except Exception as e:
         print(e)
-    return render_template('index.html')
+    return redirect(url_for('upload_file'))
 
 
 @app.errorhandler(404)
