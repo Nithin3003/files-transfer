@@ -6,9 +6,10 @@ from io import BytesIO
 import random
 import base64
 import qrcode
+import logging
 
 app = Flask(__name__)
-app.config["MONGO_URI"] = "mongodb://localhost:27017/gridfs_server_test"
+app.config["MONGO_URI"] = "mongodb+srv://msnithin84:Nithin@cluster0.wob2cfi.mongodb.net/gridfs_server_test"
 mongo = PyMongo(app)
 fs = GridFS(mongo.db)
 
@@ -33,7 +34,7 @@ def generate_random_id():
 
 def generate_qr_code(random_id):
     # download_url = url_for('download_file', _external=True)
-    qr_data = random_id
+    qr_data = str(random_id)
     qr = qrcode.QRCode(
         version=1,
         error_correction=qrcode.constants.ERROR_CORRECT_L,
@@ -44,7 +45,7 @@ def generate_qr_code(random_id):
     qr.make(fit=True)
     img = qr.make_image(fill='black', back_color='white')
     img_byte_arr = BytesIO()
-    img.save(img_byte_arr, format='PNG')
+    img.save(img_byte_arr)#, format='jpeg'
     img_byte_arr.seek(0)
     return img_byte_arr
 
@@ -67,16 +68,6 @@ def upload_file():
                     # Handle errors here
                     print(f"Error uploading file: {e}")                
 
-
-
-
-
-                # oid = fs.put(file, content_type=file.content_type, filename=file.filename)
-                # if oid:
-                #     # file_ids[random_id].append(str(oid))
-                #     store(r_id=random_id, o_id=oid)
-                # else:
-                #     return f"Failed to upload file: {file.filename}"
             qr_code_img = generate_qr_code(random_id)
             qr_code_base64 = base64.b64encode(qr_code_img.getvalue()).decode('utf-8')
             return render_template('index.html', qr_code_base64=qr_code_base64, random_id=random_id)
@@ -98,29 +89,25 @@ def upload_file():
 @app.route('/download', methods=['POST'])
 def download_file():
     file_id = request.form['file_id']
-    
+
     try:
-        # id=  mongo.db.ids.find_one_or_404({file_id})
-        # print(id['id'])
         id = find_oid(r_id=file_id)
-        if   id:
-            # file = fs.get(ObjectId(id['id']))
-            file = fs.get(ObjectId(id))
-            print(id)
+        if id:  # Check if id is not None
+            file = fs.get(ObjectId(str(id)))
+            logging.info(f"Found file with ID: {id}")  # Log successful file retrieval
             return send_file(BytesIO(file.read()), download_name=file.filename, mimetype=file.content_type, as_attachment=True)
         else:
-            return id
-#             return '''    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css" integrity="sha512-Kc323vGBEqzTmouAECnVceyQqyqdsSiqLQISBL29aUW4U/M7pSPA/gEUZQqv1cwx4OnYxTxve5UMg5GT6L4JJg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
-#     <a href="/" >
-#     <i class="fa-solid fa-circle-arrow-left"></i>  </a><br>
-#   <h1>Enter correct or no file found for this id.</h1>'''
-        
-    except Exception as e:
-        print(e)
-    return redirect(url_for('upload_file'))
+            return abort(404, description="File not found for this ID.")
+    except NoFile:
+        return abort(404, description="File not found for this ID.")
+    except (OSError, IOError) as e:  # Catch potential file access errors
+        logging.error(f"Error downloading file: {e}")
+        return abort(500, description="Internal Server Error")
+    except Exception as e:  # Catch other unexpected exceptions
+        logging.exception(f"Unexpected error downloading file: {e}")
+        return abort(500, description="Internal Server Error")
 
-
-@app.errorhandler(404)
+# @app.errorhandler(404)
 def page_not_found(Exception):
     return ''' <style>
         body {
@@ -147,8 +134,8 @@ def page_not_found(Exception):
     <p>Page Not Found </p>
     <a href="/">Go back to Home</a>''', 200
 
-@app.errorhandler(Exception)
-def error():
+# @app.errorhandler(Exception)
+def error(Exception):
     return ''' <style>
         body {
             font-family: Arial, sans-serif;
@@ -171,7 +158,7 @@ def error():
     </style>
     
     <h1>404</h1>
-    <p>''' +Exception+ ''' </p>
+    <p>Error</p>
     <a href="/">Go back to Home</a>'''
 if __name__ == '__main__':
     # print(mongo.db.ids.find({}))
