@@ -87,7 +87,7 @@ def upload_file():
     #           <input type="file" name='file' required id="file-input">
         
     #       <input type="submit" value="Save file">
-    #   </form>
+    #   </form>/home/msnithin84/my_project/includ
     #   <form id="uploadForm" method="post" enctype="multipart/form-data">
     #   <input type="file" name="file" >
     #   <input type="submit" value="Upload">
