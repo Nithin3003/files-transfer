@@ -1,4 +1,4 @@
-from flask import Flask, request, render_template, send_file, abort, url_for,redirect
+from flask import Flask, request, render_template, send_file, abort, url_for
 from flask_pymongo import PyMongo
 from bson.objectid import ObjectId
 from gridfs import GridFS, NoFile
@@ -6,7 +6,7 @@ from io import BytesIO
 import random
 import base64
 import qrcode
-import logging
+import os
 
 app = Flask(__name__)
 app.config["MONGO_URI"] = "mongodb+srv://msnithin84:Nithin@cluster0.wob2cfi.mongodb.net/gridfs_server_test"
@@ -34,7 +34,7 @@ def generate_random_id():
 
 def generate_qr_code(random_id):
     # download_url = url_for('download_file', _external=True)
-    qr_data = str(random_id)
+    qr_data = random_id
     qr = qrcode.QRCode(
         version=1,
         error_correction=qrcode.constants.ERROR_CORRECT_L,
@@ -45,7 +45,7 @@ def generate_qr_code(random_id):
     qr.make(fit=True)
     img = qr.make_image(fill='black', back_color='white')
     img_byte_arr = BytesIO()
-    img.save(img_byte_arr)#, format='jpeg'
+    img.save(img_byte_arr, format='PNG')
     img_byte_arr.seek(0)
     return img_byte_arr
 
@@ -61,13 +61,12 @@ def upload_file():
             random_id = generate_random_id()
             file_ids[random_id] = []
             for file in valid_files:
-                try:
-                    file_id = fs.put(file, content_type=file.content_type, filename=file.filename)
-                    # Handle successful upload
-                except Exception as e:
-                    # Handle errors here
-                    print(f"Error uploading file: {e}")                
-
+                oid = fs.put(file, content_type=file.content_type, filename=file.filename)
+                if oid:
+                    # file_ids[random_id].append(str(oid))
+                    store(r_id=random_id, o_id=oid)
+                else:
+                    return f"Failed to upload file: {file.filename}"
             qr_code_img = generate_qr_code(random_id)
             qr_code_base64 = base64.b64encode(qr_code_img.getvalue()).decode('utf-8')
             return render_template('index.html', qr_code_base64=qr_code_base64, random_id=random_id)
@@ -78,7 +77,7 @@ def upload_file():
     #           <input type="file" name='file' required id="file-input">
         
     #       <input type="submit" value="Save file">
-    #   </form>/home/msnithin84/my_project/includ
+    #   </form>
     #   <form id="uploadForm" method="post" enctype="multipart/form-data">
     #   <input type="file" name="file" >
     #   <input type="submit" value="Upload">
@@ -87,57 +86,32 @@ def upload_file():
     return render_template('index.html', qr_code_base64=qr_code_base64, random_id=random_id)
 
 
-
-from flask import send_file, abort, jsonify
-from bson.objectid import ObjectId
-
 @app.route('/download', methods=['POST'])
 def download_file():
     file_id = request.form['file_id']
-
+    
     try:
+        # id=  mongo.db.ids.find_one_or_404({file_id})
+        # print(id['id'])
         id = find_oid(r_id=file_id)
-        if id:  # Check if id is not None
-            file = fs.get(ObjectId(str(id)))
-
-            # Handle missing file gracefully
-            if not file:
-                return abort(404, description="File not found")
-
+        if   id:
+            # file = fs.get(ObjectId(id['id']))
+            file = fs.get(ObjectId(id))
+            print(id)
             return send_file(BytesIO(file.read()), download_name=file.filename, mimetype=file.content_type, as_attachment=True)
         else:
-            # Handle invalid ID case
-            return abort(400, description="Invalid file ID")
+            
+            return '''    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css" integrity="sha512-Kc323vGBEqzTmouAECnVceyQqyqdsSiqLQISBL29aUW4U/M7pSPA/gEUZQqv1cwx4OnYxTxve5UMg5GT6L4JJg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <a href="/" >
+    <i class="fa-solid fa-circle-arrow-left"></i>  </a><br>
+  <h1>Enter correct or no file found for this id.</h1>'''
+        
     except Exception as e:
-        # Handle any unexpected errors gracefully
-        return jsonify({"error": str(e)}), 500  # Internal Server Error
+        print(e)
+    return e
 
 
-
-
-# @app.route('/download', methods=['POST'])
-def download_files():
-    file_id = request.form['file_id']
-
-    try:
-        id = find_oid(r_id=file_id)
-        if id:  # Check if id is not None
-            file = fs.get(ObjectId(str(id)))
-            logging.info(f"Found file with ID: {id}")  # Log successful file retrieval
-            return send_file(BytesIO(file.read()), download_name=file.filename, mimetype=file.content_type, as_attachment=True)
-    #     else:
-    #         return abort(404, description="File not found for this ID.")
-    # except NoFile:
-    #     return abort(404, description="File not found for this ID.")
-    # except (OSError, IOError) as e:  # Catch potential file access errors
-    #     logging.error(f"Error downloading file: {e}")
-    #     return abort(500, description="Internal Server Error")
-    except Exception as e:  # Catch other unexpected exceptions
-        return e
-    #     logging.exception(f"Unexpected error downloading file: {e}")
-    #     return abort(500, description="Internal Server Error")
-
-# @app.errorhandler(404)
+@app.errorhandler(404)
 def page_not_found(Exception):
     return ''' <style>
         body {
@@ -164,8 +138,11 @@ def page_not_found(Exception):
     <p>Page Not Found </p>
     <a href="/">Go back to Home</a>''', 200
 
-# @app.errorhandler(Exception)
-def error(Exception):
+
+
+
+@app.errorhandler(Exception)
+def error_hi(error):
     return ''' <style>
         body {
             font-family: Arial, sans-serif;
@@ -188,8 +165,12 @@ def error(Exception):
     </style>
     
     <h1>404</h1>
-    <p>Error</p>
-    <a href="/">Go back to Home</a>'''
+    <p></p>
+    <a href="/">Go back to Home</a>''',200
+
+
 if __name__ == '__main__':
     # print(mongo.db.ids.find({}))
     app.run(debug=True)
+
+# updated by nithin
