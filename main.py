@@ -33,7 +33,6 @@ def generate_random_id():
     return str(random.randint(10000000, 99999999))
 
 def generate_qr_code(random_id):
-    # download_url = url_for('download_file', _external=True)
     qr_data = random_id
     qr = qrcode.QRCode(
         version=1,
@@ -45,7 +44,10 @@ def generate_qr_code(random_id):
     qr.make(fit=True)
     img = qr.make_image(fill='black', back_color='white')
     img_byte_arr = BytesIO()
-    img.save(img_byte_arr, format='PNG')
+
+    # Removed the 'format' argument
+    img.save(img_byte_arr)  
+
     img_byte_arr.seek(0)
     return img_byte_arr
 
@@ -111,7 +113,7 @@ def download_file():
     return e
 
 
-@app.errorhandler(404)
+# @app.errorhandler(404)
 def page_not_found(Exception):
     return ''' <style>
         body {
@@ -141,7 +143,7 @@ def page_not_found(Exception):
 
 
 
-@app.errorhandler(Exception)
+# @app.errorhandler(Exception)
 def error_hi(error):
     return ''' <style>
         body {
@@ -173,4 +175,4 @@ if __name__ == '__main__':
     # print(mongo.db.ids.find({}))
     app.run(debug=True)
 
-# updated by nithin
+# updated by
