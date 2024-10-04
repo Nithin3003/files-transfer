@@ -111,7 +111,7 @@ def download_file():
     return e
 
 
-# @app.errorhandler(404)
+@app.errorhandler(404)
 def page_not_found(Exception):
     return ''' <style>
         body {
@@ -141,7 +141,7 @@ def page_not_found(Exception):
 
 
 
-# @app.errorhandler(Exception)
+@app.errorhandler(Exception)
 def error_hi(error):
     return ''' <style>
         body {
