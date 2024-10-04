@@ -6,6 +6,7 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css" integrity="sha512-Kc323vGBEqzTmouAECnVceyQqyqdsSiqLQISBL29aUW4U/M7pSPA/gEUZQqv1cwx4OnYxTxve5UMg5GT6L4JJg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
   <style>
 
+
     body{
        background: url('https://media.istockphoto.com/id/1280291919/vector/users-sharing-files-online-using-a-smartphone-app.jpg?s=612x612&w=0&k=20&c=V7V2YyU37nzjh0eERrbeNwk3XEIT0yLEmRRCPJAcTd0=') no-repeat center center fixed ;
         background-size: cover;
@@ -331,7 +332,7 @@ input[type=number]::-webkit-outer-spin-button,
 
     {% if not qr_code_base64 %}
     <center>
-      <form class="form " id="uploadForm" action="/" method="post" enctype="multipart/form-data">
+      <form class="form " id="uploadForm" action="/upload" method="post" enctype="multipart/form-data">
           <span class="form-title">Upload your file</span>
           
         
@@ -373,13 +374,13 @@ input[type=number]::-webkit-outer-spin-button,
       </form>
       
       <br><br><br>
-    <form id="downloadForm " class="form" style="padding:10px 20px ;" action="/download" method="post">
+    <form id="downloadForm " class="form" style="padding:10px 20px ;" action="/download" >
           <h3 style="margin: 0;">Recive Files</h3> <br>
 
           <!-- <label for="file_id " class="file">File ID:</label> -->
           <div class="flex">
 
-            <input type="number" placeholder="Enter file ID..." autocomplete="off" class="input " name="file_id" required pattern="\d{8}" title="Please enter exactly 8 digits"  >
+            <input type="number" placeholder="Enter file ID..." autocomplete="off" class="input " name="file_id" required pattern="\d{6}" title="Please enter exactly 8 digits"  >
             <button  type="submit" class="btn2">
               <div class="button" data-tooltip=" Thanks"><!-- button -->
                 <div class="button-wrapper">

@@ -86,6 +86,11 @@ def upload_file():
     #   '''
     return render_template('index.html', qr_code_base64=qr_code_base64, random_id=random_id)
 
+
+
+from flask import send_file, abort, jsonify
+from bson.objectid import ObjectId
+
 @app.route('/download', methods=['POST'])
 def download_file():
     file_id = request.form['file_id']
@@ -94,18 +99,43 @@ def download_file():
         id = find_oid(r_id=file_id)
         if id:  # Check if id is not None
             file = fs.get(ObjectId(str(id)))
-            logging.info(f"Found file with ID: {id}")  # Log successful file retrieval
+
+            # Handle missing file gracefully
+            if not file:
+                return abort(404, description="File not found")
+
             return send_file(BytesIO(file.read()), download_name=file.filename, mimetype=file.content_type, as_attachment=True)
         else:
-            return abort(404, description="File not found for this ID.")
-    except NoFile:
-        return abort(404, description="File not found for this ID.")
-    except (OSError, IOError) as e:  # Catch potential file access errors
-        logging.error(f"Error downloading file: {e}")
-        return abort(500, description="Internal Server Error")
+            # Handle invalid ID case
+            return abort(400, description="Invalid file ID")
+    except Exception as e:
+        # Handle any unexpected errors gracefully
+        return jsonify({"error": str(e)}), 500  # Internal Server Error
+
+
+
+
+# @app.route('/download', methods=['POST'])
+def download_files():
+    file_id = request.form['file_id']
+
+    try:
+        id = find_oid(r_id=file_id)
+        if id:  # Check if id is not None
+            file = fs.get(ObjectId(str(id)))
+            logging.info(f"Found file with ID: {id}")  # Log successful file retrieval
+            return send_file(BytesIO(file.read()), download_name=file.filename, mimetype=file.content_type, as_attachment=True)
+    #     else:
+    #         return abort(404, description="File not found for this ID.")
+    # except NoFile:
+    #     return abort(404, description="File not found for this ID.")
+    # except (OSError, IOError) as e:  # Catch potential file access errors
+    #     logging.error(f"Error downloading file: {e}")
+    #     return abort(500, description="Internal Server Error")
     except Exception as e:  # Catch other unexpected exceptions
-        logging.exception(f"Unexpected error downloading file: {e}")
-        return abort(500, description="Internal Server Error")
+        return e
+    #     logging.exception(f"Unexpected error downloading file: {e}")
+    #     return abort(500, description="Internal Server Error")
 
 # @app.errorhandler(404)
 def page_not_found(Exception):

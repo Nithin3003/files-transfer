@@ -1,4 +1,6 @@
 runtime: python311
+service: files
+
 handlers:
 
 - url: /static
@@ -6,7 +8,7 @@ handlers:
 
 
 - url: /.*
-  script: auto
+  script: main.py
 
 env_variables:
   mail: "30nithinms@gmail.com"
