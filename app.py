@@ -100,11 +100,11 @@ def download_file():
             print(id)
             return send_file(BytesIO(file.read()), download_name=file.filename, mimetype=file.content_type, as_attachment=True)
         else:
-            return id
-#             return '''    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css" integrity="sha512-Kc323vGBEqzTmouAECnVceyQqyqdsSiqLQISBL29aUW4U/M7pSPA/gEUZQqv1cwx4OnYxTxve5UMg5GT6L4JJg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
-#     <a href="/" >
-#     <i class="fa-solid fa-circle-arrow-left"></i>  </a><br>
-#   <h1>Enter correct or no file found for this id.</h1>'''
+            
+            return '''    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css" integrity="sha512-Kc323vGBEqzTmouAECnVceyQqyqdsSiqLQISBL29aUW4U/M7pSPA/gEUZQqv1cwx4OnYxTxve5UMg5GT6L4JJg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <a href="/" >
+    <i class="fa-solid fa-circle-arrow-left"></i>  </a><br>
+  <h1>Enter correct or no file found for this id.</h1>'''
         
     except Exception as e:
         print(e)
@@ -172,3 +172,5 @@ def error_hi(error):
 if __name__ == '__main__':
     # print(mongo.db.ids.find({}))
     app.run(debug=True)
+
+# updated by nithin
