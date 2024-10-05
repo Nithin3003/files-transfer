@@ -1,5 +1,5 @@
 runtime: python311
-service: files
+service: files-transfer
 
 handlers:
 

@@ -9,7 +9,11 @@ import qrcode
 import os
 
 app = Flask(__name__)
-app.config["MONGO_URI"] = "mongodb+srv://msnithin84:Nithin@cluster0.wob2cfi.mongodb.net/gridfs_server_test"
+
+os.environ["url"] = "mongodb+srv://msnithin84:Nithin@cluster0.wob2cfi.mongodb.net/files"
+
+app.config["MONGO_URI"] = os.environ.get('url')
+# app.config["MONGO_URI"] = "mongodb+srv://msnithin84:Nithin@cluster0.wob2cfi.mongodb.net/gridfs_server_test"
 mongo = PyMongo(app)
 fs = GridFS(mongo.db)
 
@@ -73,7 +77,33 @@ def upload_file():
             qr_code_base64 = base64.b64encode(qr_code_img.getvalue()).decode('utf-8')
             return render_template('index.html', qr_code_base64=qr_code_base64, random_id=random_id)
         else:
-            return "No valid files to upload."
+            return  '''  <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            padding: 50px;
+        }
+        h1 {
+            font-size: 50px;
+        }
+        p {
+            font-size: 20px;
+        }
+        a {
+            color: #007BFF;
+            text-decoration: none;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
+    </style>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css" integrity="sha512-Kc323vGBEqzTmouAECnVceyQqyqdsSiqLQISBL29aUW4U/M7pSPA/gEUZQqv1cwx4OnYxTxve5UMg5GT6L4JJg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    
+    <i class="fa-solid fa-circle-arrow-left"></i>  </a><br>
+    <h1>Enter valid file {'txt', 'pdf', 'png', 'jpg', 'jpeg', 'gif', 'pptx'} </h1>
+  
+    <a href="/">Go back to Home</a>'''
+
     # return '''<form  method="post" enctype="multipart/form-data">
           
     #           <input type="file" name='file' required id="file-input">
@@ -100,20 +130,45 @@ def download_file():
             # file = fs.get(ObjectId(id['id']))
             file = fs.get(ObjectId(id))
             print(id)
+
+            
             return send_file(BytesIO(file.read()), download_name=file.filename, mimetype=file.content_type, as_attachment=True)
         else:
             
-            return '''    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css" integrity="sha512-Kc323vGBEqzTmouAECnVceyQqyqdsSiqLQISBL29aUW4U/M7pSPA/gEUZQqv1cwx4OnYxTxve5UMg5GT6L4JJg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
-    <a href="/" >
+            return '''  <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            padding: 50px;
+        }
+        h1 {
+            font-size: 50px;
+        }
+        p {
+            font-size: 20px;
+        }
+        a {
+            color: #007BFF;
+            text-decoration: none;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
+    </style>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css" integrity="sha512-Kc323vGBEqzTmouAECnVceyQqyqdsSiqLQISBL29aUW4U/M7pSPA/gEUZQqv1cwx4OnYxTxve5UMg5GT6L4JJg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    
     <i class="fa-solid fa-circle-arrow-left"></i>  </a><br>
-  <h1>Enter correct or no file found for this id.</h1>'''
+  <h1>Enter correct or no file found for this id.</h1>
+    <a href="/">Go back to Home</a>''', 200
+
+
         
     except Exception as e:
         print(e)
     return e
 
 
-# @app.errorhandler(404)
+@app.errorhandler(404)
 def page_not_found(Exception):
     return ''' <style>
         body {
@@ -143,7 +198,7 @@ def page_not_found(Exception):
 
 
 
-# @app.errorhandler(Exception)
+@app.errorhandler(Exception)
 def error_hi(error):
     return ''' <style>
         body {
