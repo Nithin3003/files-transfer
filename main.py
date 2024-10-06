@@ -136,8 +136,8 @@ def download_by_qr(id):
         print(e)
     return e
 
-# @app.errorhandler(404)
-def page_not_found(Exception):
+@app.errorhandler(Exception)
+def page_not_found():
     return ''' <style>
         body {
             font-family: Arial, sans-serif;
@@ -166,8 +166,8 @@ def page_not_found(Exception):
 
 
 
-# @app.errorhandler(Exception)
-def error_hi(error):
+@app.errorhandler(500)
+def error_hi():
     return ''' <style>
         body {
             font-family: Arial, sans-serif;
@@ -189,8 +189,7 @@ def error_hi(error):
         }
     </style>
     
-    <h1>404</h1>
-    <p></p>
+    <h1>Internal Servar Error</h1>
     <a href="/">Go back to Home</a>''',200
 
 
