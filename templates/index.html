@@ -325,6 +325,13 @@ input[type=number]::-webkit-outer-spin-button,
         input[type=number] {
             appearance: textfield; /* Hide the arrows in Firefox */
         }
+.qrcode{
+  position: relative;
+  width: 1000px;
+  height: 1000px;
+  border:2px solid ;
+}
+        
 </style>
 </head>
 <body>
@@ -416,10 +423,13 @@ input[type=number]::-webkit-outer-spin-button,
             </div>
           </div>
         </button>
+        <div class="qrcode">
+          
+          <img src="data:image/png;base64,{{ qr_code_base64 }}" alt="QR Code">
+       </div>
       </form>
       
       <!-- <h2 class="qr-code">QR Code for Download</h2> -->
-      <img src="data:image/png;base64,{{ qr_code_base64 }}" alt="QR Code">
 
     </div> 
   </center>

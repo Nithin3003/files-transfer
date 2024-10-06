@@ -35,7 +35,7 @@ def generate_random_id():
 
 def generate_qr_code(random_id):
 
-    download_url = f'http://127.0.0.1:500/download_qr/{random_id}'
+    download_url = f'http://org.codedpad.me:5000/download_qr/{random_id}'
     # qr_data = random_id
     qr = qrcode.QRCode(
         version=1,
