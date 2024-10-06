@@ -35,7 +35,7 @@ def generate_random_id():
 
 def generate_qr_code(random_id):
 
-    download_url = url_for(f'http://127.0.0.1:500/download_by_qr/{random_id}')
+    download_url = f'http://127.0.0.1:500/download_qr/{random_id}'
     # qr_data = random_id
     qr = qrcode.QRCode(
         version=1,
@@ -115,7 +115,7 @@ def download_file():
 
 
 
-@app.route('/download_by_qr/<int:id>',methods=['GET'])
+@app.route('/download_qr/<int:id>')
 def download_by_qr(id):
     
     id = find_oid(r_id=id)
