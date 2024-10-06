@@ -1,4 +1,4 @@
-from flask import Flask, request, render_template, send_file, abort, url_for
+from flask import Flask, request, render_template, send_file, abort, url_for, redirect
 from flask_pymongo import PyMongo
 from bson.objectid import ObjectId
 from gridfs import GridFS, NoFile
@@ -9,11 +9,7 @@ import qrcode
 import os
 
 app = Flask(__name__)
-
-os.environ["url"] = "mongodb+srv://msnithin84:Nithin@cluster0.wob2cfi.mongodb.net/files"
-
-app.config["MONGO_URI"] = os.environ.get('url')
-# app.config["MONGO_URI"] = "mongodb+srv://msnithin84:Nithin@cluster0.wob2cfi.mongodb.net/gridfs_server_test"
+app.config["MONGO_URI"] = "mongodb+srv://msnithin84:Nithin@cluster0.wob2cfi.mongodb.net/gridfs_server_test"
 mongo = PyMongo(app)
 fs = GridFS(mongo.db)
 
@@ -36,22 +32,22 @@ def allowed_file(filename):
 def generate_random_id():
     return str(random.randint(10000000, 99999999))
 
+
 def generate_qr_code(random_id):
-    qr_data = random_id
+
+    download_url = f'http://org.codedpad.me/download_qr/{random_id}'
+    # qr_data = random_id
     qr = qrcode.QRCode(
         version=1,
         error_correction=qrcode.constants.ERROR_CORRECT_L,
         box_size=10,
         border=4,
     )
-    qr.add_data(qr_data)
+    qr.add_data(download_url)
     qr.make(fit=True)
     img = qr.make_image(fill='black', back_color='white')
     img_byte_arr = BytesIO()
-
-    # Removed the 'format' argument
-    img.save(img_byte_arr)  
-
+    img.save(img_byte_arr, format='PNG')
     img_byte_arr.seek(0)
     return img_byte_arr
 
@@ -77,33 +73,7 @@ def upload_file():
             qr_code_base64 = base64.b64encode(qr_code_img.getvalue()).decode('utf-8')
             return render_template('index.html', qr_code_base64=qr_code_base64, random_id=random_id)
         else:
-            return  '''  <style>
-        body {
-            font-family: Arial, sans-serif;
-            text-align: center;
-            padding: 50px;
-        }
-        h1 {
-            font-size: 50px;
-        }
-        p {
-            font-size: 20px;
-        }
-        a {
-            color: #007BFF;
-            text-decoration: none;
-        }
-        a:hover {
-            text-decoration: underline;
-        }
-    </style>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css" integrity="sha512-Kc323vGBEqzTmouAECnVceyQqyqdsSiqLQISBL29aUW4U/M7pSPA/gEUZQqv1cwx4OnYxTxve5UMg5GT6L4JJg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
-    
-    <i class="fa-solid fa-circle-arrow-left"></i>  </a><br>
-    <h1>Enter valid file {'txt', 'pdf', 'png', 'jpg', 'jpeg', 'gif', 'pptx'} </h1>
-  
-    <a href="/">Go back to Home</a>'''
-
+            return "No valid files to upload."
     # return '''<form  method="post" enctype="multipart/form-data">
           
     #           <input type="file" name='file' required id="file-input">
@@ -120,7 +90,8 @@ def upload_file():
 
 @app.route('/download', methods=['POST'])
 def download_file():
-    file_id = request.form['file_id']
+   
+    file_id =request.form['file_id']
     
     try:
         # id=  mongo.db.ids.find_one_or_404({file_id})
@@ -130,46 +101,43 @@ def download_file():
             # file = fs.get(ObjectId(id['id']))
             file = fs.get(ObjectId(id))
             print(id)
-
-            
             return send_file(BytesIO(file.read()), download_name=file.filename, mimetype=file.content_type, as_attachment=True)
         else:
             
-            return '''  <style>
-        body {
-            font-family: Arial, sans-serif;
-            text-align: center;
-            padding: 50px;
-        }
-        h1 {
-            font-size: 50px;
-        }
-        p {
-            font-size: 20px;
-        }
-        a {
-            color: #007BFF;
-            text-decoration: none;
-        }
-        a:hover {
-            text-decoration: underline;
-        }
-    </style>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css" integrity="sha512-Kc323vGBEqzTmouAECnVceyQqyqdsSiqLQISBL29aUW4U/M7pSPA/gEUZQqv1cwx4OnYxTxve5UMg5GT6L4JJg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
-    
+            return '''    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css" integrity="sha512-Kc323vGBEqzTmouAECnVceyQqyqdsSiqLQISBL29aUW4U/M7pSPA/gEUZQqv1cwx4OnYxTxve5UMg5GT6L4JJg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <a href="/" >
     <i class="fa-solid fa-circle-arrow-left"></i>  </a><br>
-  <h1>Enter correct or no file found for this id.</h1>
-    <a href="/">Go back to Home</a>''', 200
-
-
+  <h1>Enter correct or no file found for this id.</h1>'''
         
     except Exception as e:
         print(e)
     return e
 
 
-@app.errorhandler(404)
-def page_not_found(Exception):
+
+@app.route('/download_qr/<int:id>')
+def download_by_qr(id):
+    
+    id = find_oid(r_id=id)
+    try:
+        if   id:
+            # file = fs.get(ObjectId(id['id']))
+            file = fs.get(ObjectId(id))
+            print(id)
+            return send_file(BytesIO(file.read()), download_name=file.filename, mimetype=file.content_type, as_attachment=True)
+        else:
+            
+            return '''    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css" integrity="sha512-Kc323vGBEqzTmouAECnVceyQqyqdsSiqLQISBL29aUW4U/M7pSPA/gEUZQqv1cwx4OnYxTxve5UMg5GT6L4JJg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <a href="/" >
+    <i class="fa-solid fa-circle-arrow-left"></i>  </a><br>
+  <h1>Enter correct or no file found for this id.</h1>'''
+        
+    except Exception as e:
+        print(e)
+    return e
+
+@app.errorhandler(Exception)
+def page_not_found():
     return ''' <style>
         body {
             font-family: Arial, sans-serif;
@@ -198,8 +166,8 @@ def page_not_found(Exception):
 
 
 
-@app.errorhandler(Exception)
-def error_hi(error):
+@app.errorhandler(500)
+def error_hi():
     return ''' <style>
         body {
             font-family: Arial, sans-serif;
@@ -221,9 +189,10 @@ def error_hi(error):
         }
     </style>
     
-    <h1>404</h1>
-    <p></p>
+    <h1>Internal Servar Error</h1>
     <a href="/">Go back to Home</a>''',200
+
+
 
 
 if __name__ == '__main__':
