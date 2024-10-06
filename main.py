@@ -9,7 +9,7 @@ import qrcode
 import os
 
 app = Flask(__name__)
-app.config["MONGO_URI"] = "mongodb+srv://msnithin84:Nithin@cluster0.wob2cfi.mongodb.net/gridfs_server_test"
+app.config["MONGO_URI"] = "mongodb+srv://msnithin84:Nithin@cluster0.wob2cfi.mongodb.net/files"
 mongo = PyMongo(app)
 fs = GridFS(mongo.db)
 
